@@ -38,6 +38,12 @@ A comprehensive guide to common Data Structures and Algorithms patterns with Pyt
   - [OrderedDict](#10-ordereddict)
   - [bisect Module](#11-bisect-module)
   - [itertools Module](#12-itertools-module)
+  - [Linked Lists](#13-linked-lists)
+  - [Binary Trees](#14-binary-trees)
+  - [Binary Search Trees](#15-binary-search-trees)
+  - [Graphs](#16-graphs)
+  - [Stacks](#17-stacks)
+  - [Queues](#18-queues)
 
 ### Part II: Algorithm Patterns
 1. [Two Pointers](#1-two-pointers)
@@ -1376,6 +1382,1337 @@ def chunked(iterable, n):
         if not chunk:
             break
         yield chunk
+```
+
+---
+
+## 13. Linked Lists
+
+### Overview
+Linear data structure where elements are stored in nodes, each pointing to the next node.
+
+### Node Definition
+```python
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+```
+
+### Time Complexity
+- **Access**: O(n)
+- **Search**: O(n)
+- **Insert at head**: O(1)
+- **Insert at tail**: O(n) without tail pointer, O(1) with tail pointer
+- **Insert at position**: O(n)
+- **Delete**: O(n)
+
+### When to Use
+- Frequent insertions/deletions at beginning
+- Unknown size or dynamic size
+- No random access needed
+- Implementing stacks, queues, or LRU cache
+
+### Basic Operations
+```python
+class LinkedList:
+    def __init__(self):
+        self.head = None
+    
+    # Insert at beginning - O(1)
+    def insert_at_head(self, val):
+        new_node = ListNode(val)
+        new_node.next = self.head
+        self.head = new_node
+    
+    # Insert at end - O(n)
+    def insert_at_tail(self, val):
+        new_node = ListNode(val)
+        
+        if not self.head:
+            self.head = new_node
+            return
+        
+        current = self.head
+        while current.next:
+            current = current.next
+        current.next = new_node
+    
+    # Insert at position - O(n)
+    def insert_at_position(self, pos, val):
+        if pos == 0:
+            self.insert_at_head(val)
+            return
+        
+        new_node = ListNode(val)
+        current = self.head
+        
+        for _ in range(pos - 1):
+            if not current:
+                return
+            current = current.next
+        
+        if current:
+            new_node.next = current.next
+            current.next = new_node
+    
+    # Delete node with value - O(n)
+    def delete(self, val):
+        if not self.head:
+            return
+        
+        if self.head.val == val:
+            self.head = self.head.next
+            return
+        
+        current = self.head
+        while current.next:
+            if current.next.val == val:
+                current.next = current.next.next
+                return
+            current = current.next
+    
+    # Search - O(n)
+    def search(self, val):
+        current = self.head
+        while current:
+            if current.val == val:
+                return True
+            current = current.next
+        return False
+    
+    # Get length - O(n)
+    def length(self):
+        count = 0
+        current = self.head
+        while current:
+            count += 1
+            current = current.next
+        return count
+    
+    # Reverse - O(n)
+    def reverse(self):
+        prev = None
+        current = self.head
+        
+        while current:
+            next_node = current.next
+            current.next = prev
+            prev = current
+            current = next_node
+        
+        self.head = prev
+    
+    # Display - O(n)
+    def display(self):
+        result = []
+        current = self.head
+        while current:
+            result.append(current.val)
+            current = current.next
+        return result
+```
+
+### Common Patterns
+```python
+# Create linked list from array
+def create_linked_list(arr):
+    if not arr:
+        return None
+    
+    head = ListNode(arr[0])
+    current = head
+    
+    for i in range(1, len(arr)):
+        current.next = ListNode(arr[i])
+        current = current.next
+    
+    return head
+
+# Convert linked list to array
+def linked_list_to_array(head):
+    result = []
+    current = head
+    while current:
+        result.append(current.val)
+        current = current.next
+    return result
+
+# Find middle (Fast & Slow pointers)
+def find_middle(head):
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    
+    return slow
+
+# Detect cycle
+def has_cycle(head):
+    if not head or not head.next:
+        return False
+    
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+    
+    return False
+
+# Merge two sorted lists
+def merge_sorted_lists(l1, l2):
+    dummy = ListNode(0)
+    current = dummy
+    
+    while l1 and l2:
+        if l1.val <= l2.val:
+            current.next = l1
+            l1 = l1.next
+        else:
+            current.next = l2
+            l2 = l2.next
+        current = current.next
+    
+    current.next = l1 if l1 else l2
+    return dummy.next
+
+# Remove nth node from end
+def remove_nth_from_end(head, n):
+    dummy = ListNode(0)
+    dummy.next = head
+    first = second = dummy
+    
+    # Move first n+1 steps ahead
+    for _ in range(n + 1):
+        first = first.next
+    
+    # Move both until first reaches end
+    while first:
+        first = first.next
+        second = second.next
+    
+    # Remove nth node
+    second.next = second.next.next
+    return dummy.next
+```
+
+### Doubly Linked List
+```python
+class DListNode:
+    def __init__(self, val=0, prev=None, next=None):
+        self.val = val
+        self.prev = prev
+        self.next = next
+
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+    
+    def insert_at_head(self, val):
+        new_node = DListNode(val)
+        
+        if not self.head:
+            self.head = self.tail = new_node
+        else:
+            new_node.next = self.head
+            self.head.prev = new_node
+            self.head = new_node
+    
+    def insert_at_tail(self, val):
+        new_node = DListNode(val)
+        
+        if not self.tail:
+            self.head = self.tail = new_node
+        else:
+            new_node.prev = self.tail
+            self.tail.next = new_node
+            self.tail = new_node
+    
+    def delete_node(self, node):
+        if node.prev:
+            node.prev.next = node.next
+        else:
+            self.head = node.next
+        
+        if node.next:
+            node.next.prev = node.prev
+        else:
+            self.tail = node.prev
+```
+
+---
+
+## 14. Binary Trees
+
+### Overview
+Hierarchical data structure where each node has at most two children.
+
+### Node Definition
+```python
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+```
+
+### Time Complexity
+- **Access**: O(n)
+- **Search**: O(n)
+- **Insert**: O(n)
+- **Delete**: O(n)
+- **Traversal**: O(n)
+
+### When to Use
+- Hierarchical data representation
+- Expression evaluation
+- File system structure
+- Decision trees
+
+### Traversal Methods
+```python
+# Inorder Traversal (Left, Root, Right) - Gives sorted order for BST
+def inorder(root):
+    result = []
+    
+    def helper(node):
+        if not node:
+            return
+        helper(node.left)
+        result.append(node.val)
+        helper(node.right)
+    
+    helper(root)
+    return result
+
+# Iterative Inorder
+def inorder_iterative(root):
+    result = []
+    stack = []
+    current = root
+    
+    while current or stack:
+        while current:
+            stack.append(current)
+            current = current.left
+        
+        current = stack.pop()
+        result.append(current.val)
+        current = current.right
+    
+    return result
+
+# Preorder Traversal (Root, Left, Right)
+def preorder(root):
+    result = []
+    
+    def helper(node):
+        if not node:
+            return
+        result.append(node.val)
+        helper(node.left)
+        helper(node.right)
+    
+    helper(root)
+    return result
+
+# Iterative Preorder
+def preorder_iterative(root):
+    if not root:
+        return []
+    
+    result = []
+    stack = [root]
+    
+    while stack:
+        node = stack.pop()
+        result.append(node.val)
+        
+        # Push right first so left is processed first
+        if node.right:
+            stack.append(node.right)
+        if node.left:
+            stack.append(node.left)
+    
+    return result
+
+# Postorder Traversal (Left, Right, Root)
+def postorder(root):
+    result = []
+    
+    def helper(node):
+        if not node:
+            return
+        helper(node.left)
+        helper(node.right)
+        result.append(node.val)
+    
+    helper(root)
+    return result
+
+# Level Order Traversal (BFS)
+def level_order(root):
+    if not root:
+        return []
+    
+    from collections import deque
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)
+        level = []
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level.append(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level)
+    
+    return result
+```
+
+### Common Operations
+```python
+# Height/Depth of tree
+def max_depth(root):
+    if not root:
+        return 0
+    return 1 + max(max_depth(root.left), max_depth(root.right))
+
+# Count nodes
+def count_nodes(root):
+    if not root:
+        return 0
+    return 1 + count_nodes(root.left) + count_nodes(root.right)
+
+# Check if balanced
+def is_balanced(root):
+    def helper(node):
+        if not node:
+            return 0, True
+        
+        left_height, left_balanced = helper(node.left)
+        right_height, right_balanced = helper(node.right)
+        
+        balanced = (left_balanced and right_balanced and 
+                   abs(left_height - right_height) <= 1)
+        
+        return 1 + max(left_height, right_height), balanced
+    
+    return helper(root)[1]
+
+# Check if symmetric
+def is_symmetric(root):
+    def is_mirror(left, right):
+        if not left and not right:
+            return True
+        if not left or not right:
+            return False
+        
+        return (left.val == right.val and
+                is_mirror(left.left, right.right) and
+                is_mirror(left.right, right.left))
+    
+    return is_mirror(root, root)
+
+# Lowest Common Ancestor
+def lowest_common_ancestor(root, p, q):
+    if not root or root == p or root == q:
+        return root
+    
+    left = lowest_common_ancestor(root.left, p, q)
+    right = lowest_common_ancestor(root.right, p, q)
+    
+    if left and right:
+        return root
+    
+    return left if left else right
+
+# Path sum - check if path from root to leaf sums to target
+def has_path_sum(root, target_sum):
+    if not root:
+        return False
+    
+    if not root.left and not root.right:
+        return root.val == target_sum
+    
+    return (has_path_sum(root.left, target_sum - root.val) or
+            has_path_sum(root.right, target_sum - root.val))
+
+# All paths from root to leaf
+def all_paths(root):
+    if not root:
+        return []
+    
+    result = []
+    
+    def dfs(node, path):
+        if not node:
+            return
+        
+        path.append(node.val)
+        
+        if not node.left and not node.right:
+            result.append(path[:])
+        else:
+            dfs(node.left, path)
+            dfs(node.right, path)
+        
+        path.pop()
+    
+    dfs(root, [])
+    return result
+
+# Serialize and Deserialize
+def serialize(root):
+    if not root:
+        return "None"
+    return f"{root.val},{serialize(root.left)},{serialize(root.right)}"
+
+def deserialize(data):
+    def helper(nodes):
+        val = next(nodes)
+        if val == "None":
+            return None
+        node = TreeNode(int(val))
+        node.left = helper(nodes)
+        node.right = helper(nodes)
+        return node
+    
+    return helper(iter(data.split(',')))
+
+# Build tree from inorder and preorder
+def build_tree(preorder, inorder):
+    if not preorder or not inorder:
+        return None
+    
+    root_val = preorder[0]
+    root = TreeNode(root_val)
+    mid = inorder.index(root_val)
+    
+    root.left = build_tree(preorder[1:mid+1], inorder[:mid])
+    root.right = build_tree(preorder[mid+1:], inorder[mid+1:])
+    
+    return root
+```
+
+---
+
+## 15. Binary Search Trees
+
+### Overview
+Binary tree where left child < parent < right child. Enables O(log n) operations.
+
+### Time Complexity (Balanced BST)
+- **Search**: O(log n) average, O(n) worst
+- **Insert**: O(log n) average, O(n) worst
+- **Delete**: O(log n) average, O(n) worst
+- **Min/Max**: O(log n) average, O(n) worst
+
+### When to Use
+- Need sorted data with fast search
+- Range queries
+- Finding predecessor/successor
+- Implementing sets and maps
+
+### Basic Operations
+```python
+class BST:
+    def __init__(self):
+        self.root = None
+    
+    # Insert - O(log n) average
+    def insert(self, val):
+        def helper(node, val):
+            if not node:
+                return TreeNode(val)
+            
+            if val < node.val:
+                node.left = helper(node.left, val)
+            elif val > node.val:
+                node.right = helper(node.right, val)
+            
+            return node
+        
+        self.root = helper(self.root, val)
+    
+    # Search - O(log n) average
+    def search(self, val):
+        current = self.root
+        
+        while current:
+            if val == current.val:
+                return True
+            elif val < current.val:
+                current = current.left
+            else:
+                current = current.right
+        
+        return False
+    
+    # Find minimum - O(log n)
+    def find_min(self):
+        if not self.root:
+            return None
+        
+        current = self.root
+        while current.left:
+            current = current.left
+        
+        return current.val
+    
+    # Find maximum - O(log n)
+    def find_max(self):
+        if not self.root:
+            return None
+        
+        current = self.root
+        while current.right:
+            current = current.right
+        
+        return current.val
+    
+    # Delete - O(log n) average
+    def delete(self, val):
+        def helper(node, val):
+            if not node:
+                return None
+            
+            if val < node.val:
+                node.left = helper(node.left, val)
+            elif val > node.val:
+                node.right = helper(node.right, val)
+            else:
+                # Node to delete found
+                # Case 1: No children or one child
+                if not node.left:
+                    return node.right
+                if not node.right:
+                    return node.left
+                
+                # Case 2: Two children
+                # Find inorder successor (smallest in right subtree)
+                min_node = node.right
+                while min_node.left:
+                    min_node = min_node.left
+                
+                node.val = min_node.val
+                node.right = helper(node.right, min_node.val)
+            
+            return node
+        
+        self.root = helper(self.root, val)
+```
+
+### Common BST Problems
+```python
+# Validate BST
+def is_valid_bst(root):
+    def helper(node, min_val, max_val):
+        if not node:
+            return True
+        
+        if node.val <= min_val or node.val >= max_val:
+            return False
+        
+        return (helper(node.left, min_val, node.val) and
+                helper(node.right, node.val, max_val))
+    
+    return helper(root, float('-inf'), float('inf'))
+
+# Kth smallest element
+def kth_smallest(root, k):
+    stack = []
+    current = root
+    count = 0
+    
+    while current or stack:
+        while current:
+            stack.append(current)
+            current = current.left
+        
+        current = stack.pop()
+        count += 1
+        
+        if count == k:
+            return current.val
+        
+        current = current.right
+
+# Range sum BST
+def range_sum_bst(root, low, high):
+    if not root:
+        return 0
+    
+    total = 0
+    
+    if low <= root.val <= high:
+        total += root.val
+    
+    if root.val > low:
+        total += range_sum_bst(root.left, low, high)
+    
+    if root.val < high:
+        total += range_sum_bst(root.right, low, high)
+    
+    return total
+
+# Inorder successor
+def inorder_successor(root, p):
+    successor = None
+    
+    while root:
+        if p.val < root.val:
+            successor = root
+            root = root.left
+        else:
+            root = root.right
+    
+    return successor
+
+# Convert sorted array to BST
+def sorted_array_to_bst(nums):
+    if not nums:
+        return None
+    
+    mid = len(nums) // 2
+    root = TreeNode(nums[mid])
+    
+    root.left = sorted_array_to_bst(nums[:mid])
+    root.right = sorted_array_to_bst(nums[mid+1:])
+    
+    return root
+```
+
+---
+
+## 16. Graphs
+
+### Overview
+Collection of nodes (vertices) connected by edges. Can be directed or undirected.
+
+### Representations
+```python
+# 1. Adjacency List (Most common for sparse graphs)
+class Graph:
+    def __init__(self):
+        self.graph = {}  # or defaultdict(list)
+    
+    def add_edge(self, u, v):
+        if u not in self.graph:
+            self.graph[u] = []
+        self.graph[u].append(v)
+        # For undirected graph, add reverse edge
+        # if v not in self.graph:
+        #     self.graph[v] = []
+        # self.graph[v].append(u)
+
+# Using defaultdict
+from collections import defaultdict
+
+graph = defaultdict(list)
+graph[0].append(1)
+graph[0].append(2)
+
+# 2. Adjacency Matrix (Dense graphs)
+n = 5  # Number of vertices
+adj_matrix = [[0] * n for _ in range(n)]
+adj_matrix[0][1] = 1  # Edge from 0 to 1
+adj_matrix[1][0] = 1  # Edge from 1 to 0 (undirected)
+
+# 3. Edge List
+edges = [(0, 1), (1, 2), (2, 3)]
+```
+
+### Time Complexity
+- **Add vertex**: O(1)
+- **Add edge**: O(1)
+- **Remove vertex**: O(V + E)
+- **Remove edge**: O(E)
+- **Query edge**: O(1) matrix, O(degree) list
+
+### Graph Traversals
+```python
+# DFS - Recursive
+def dfs_recursive(graph, start):
+    visited = set()
+    result = []
+    
+    def dfs(node):
+        visited.add(node)
+        result.append(node)
+        
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                dfs(neighbor)
+    
+    dfs(start)
+    return result
+
+# DFS - Iterative
+def dfs_iterative(graph, start):
+    visited = set()
+    result = []
+    stack = [start]
+    
+    while stack:
+        node = stack.pop()
+        
+        if node not in visited:
+            visited.add(node)
+            result.append(node)
+            
+            # Add neighbors in reverse order for same order as recursive
+            for neighbor in reversed(graph.get(node, [])):
+                if neighbor not in visited:
+                    stack.append(neighbor)
+    
+    return result
+
+# BFS
+def bfs(graph, start):
+    from collections import deque
+    
+    visited = set([start])
+    result = []
+    queue = deque([start])
+    
+    while queue:
+        node = queue.popleft()
+        result.append(node)
+        
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+    
+    return result
+```
+
+### Common Graph Algorithms
+```python
+# Check if path exists
+def has_path(graph, start, end):
+    if start == end:
+        return True
+    
+    visited = set()
+    stack = [start]
+    
+    while stack:
+        node = stack.pop()
+        
+        if node == end:
+            return True
+        
+        if node not in visited:
+            visited.add(node)
+            for neighbor in graph.get(node, []):
+                stack.append(neighbor)
+    
+    return False
+
+# Shortest path (BFS for unweighted graph)
+def shortest_path(graph, start, end):
+    from collections import deque
+    
+    if start == end:
+        return [start]
+    
+    visited = {start}
+    queue = deque([(start, [start])])
+    
+    while queue:
+        node, path = queue.popleft()
+        
+        for neighbor in graph.get(node, []):
+            if neighbor == end:
+                return path + [neighbor]
+            
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append((neighbor, path + [neighbor]))
+    
+    return []
+
+# Detect cycle in undirected graph (DFS)
+def has_cycle_undirected(graph, n):
+    visited = set()
+    
+    def dfs(node, parent):
+        visited.add(node)
+        
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                if dfs(neighbor, node):
+                    return True
+            elif neighbor != parent:
+                return True
+        
+        return False
+    
+    for i in range(n):
+        if i not in visited:
+            if dfs(i, -1):
+                return True
+    
+    return False
+
+# Detect cycle in directed graph (DFS with colors)
+def has_cycle_directed(graph, n):
+    # 0 = white (unvisited), 1 = gray (visiting), 2 = black (visited)
+    state = [0] * n
+    
+    def dfs(node):
+        if state[node] == 1:  # Back edge - cycle found
+            return True
+        if state[node] == 2:  # Already processed
+            return False
+        
+        state[node] = 1  # Mark as visiting
+        
+        for neighbor in graph.get(node, []):
+            if dfs(neighbor):
+                return True
+        
+        state[node] = 2  # Mark as visited
+        return False
+    
+    for i in range(n):
+        if state[i] == 0:
+            if dfs(i):
+                return True
+    
+    return False
+
+# Topological Sort (Kahn's algorithm)
+def topological_sort(n, edges):
+    from collections import deque
+    
+    graph = defaultdict(list)
+    in_degree = [0] * n
+    
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1
+    
+    queue = deque([i for i in range(n) if in_degree[i] == 0])
+    result = []
+    
+    while queue:
+        node = queue.popleft()
+        result.append(node)
+        
+        for neighbor in graph[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    return result if len(result) == n else []
+
+# Number of connected components (Union Find)
+def count_components(n, edges):
+    parent = list(range(n))
+    
+    def find(x):
+        if parent[x] != x:
+            parent[x] = find(parent[x])
+        return parent[x]
+    
+    def union(x, y):
+        root_x, root_y = find(x), find(y)
+        if root_x != root_y:
+            parent[root_x] = root_y
+            return True
+        return False
+    
+    components = n
+    for u, v in edges:
+        if union(u, v):
+            components -= 1
+    
+    return components
+
+# Dijkstra's Algorithm (Shortest path with weights)
+def dijkstra(graph, start, n):
+    import heapq
+    
+    distances = [float('inf')] * n
+    distances[start] = 0
+    heap = [(0, start)]  # (distance, node)
+    
+    while heap:
+        dist, node = heapq.heappop(heap)
+        
+        if dist > distances[node]:
+            continue
+        
+        for neighbor, weight in graph.get(node, []):
+            new_dist = dist + weight
+            
+            if new_dist < distances[neighbor]:
+                distances[neighbor] = new_dist
+                heapq.heappush(heap, (new_dist, neighbor))
+    
+    return distances
+```
+
+### Graph as Grid (Common in LeetCode)
+```python
+# DFS on grid
+def dfs_grid(grid, i, j):
+    if (i < 0 or i >= len(grid) or j < 0 or j >= len(grid[0]) or 
+        grid[i][j] == 0):
+        return
+    
+    grid[i][j] = 0  # Mark as visited
+    
+    # Visit all 4 directions
+    dfs_grid(grid, i+1, j)
+    dfs_grid(grid, i-1, j)
+    dfs_grid(grid, i, j+1)
+    dfs_grid(grid, i, j-1)
+
+# BFS on grid
+def bfs_grid(grid, start_i, start_j):
+    from collections import deque
+    
+    rows, cols = len(grid), len(grid[0])
+    visited = set()
+    queue = deque([(start_i, start_j)])
+    visited.add((start_i, start_j))
+    
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    
+    while queue:
+        i, j = queue.popleft()
+        
+        for di, dj in directions:
+            ni, nj = i + di, j + dj
+            
+            if (0 <= ni < rows and 0 <= nj < cols and 
+                (ni, nj) not in visited and grid[ni][nj] == 1):
+                visited.add((ni, nj))
+                queue.append((ni, nj))
+```
+
+---
+
+## 17. Stacks
+
+### Overview
+LIFO (Last In First Out) data structure. Can use Python list.
+
+### Time Complexity
+- **Push**: O(1)
+- **Pop**: O(1)
+- **Peek**: O(1)
+- **Search**: O(n)
+
+### When to Use
+- Function call stack
+- Undo mechanisms
+- Expression evaluation
+- Backtracking
+- Balanced parentheses
+
+### Implementation
+```python
+# Using Python list (easiest)
+stack = []
+stack.append(1)  # Push
+top = stack.pop()  # Pop
+top = stack[-1] if stack else None  # Peek
+is_empty = len(stack) == 0
+
+# Custom implementation
+class Stack:
+    def __init__(self):
+        self.items = []
+    
+    def push(self, item):
+        self.items.append(item)
+    
+    def pop(self):
+        if not self.is_empty():
+            return self.items.pop()
+        raise IndexError("pop from empty stack")
+    
+    def peek(self):
+        if not self.is_empty():
+            return self.items[-1]
+        raise IndexError("peek from empty stack")
+    
+    def is_empty(self):
+        return len(self.items) == 0
+    
+    def size(self):
+        return len(self.items)
+
+# Using deque (also efficient)
+from collections import deque
+stack = deque()
+stack.append(1)
+top = stack.pop()
+```
+
+### Common Patterns
+```python
+# Valid parentheses
+def is_valid_parentheses(s):
+    stack = []
+    mapping = {')': '(', '}': '{', ']': '['}
+    
+    for char in s:
+        if char in mapping:
+            top = stack.pop() if stack else '#'
+            if mapping[char] != top:
+                return False
+        else:
+            stack.append(char)
+    
+    return not stack
+
+# Evaluate postfix expression
+def eval_postfix(expression):
+    stack = []
+    
+    for token in expression.split():
+        if token in ['+', '-', '*', '/']:
+            b = stack.pop()
+            a = stack.pop()
+            
+            if token == '+':
+                stack.append(a + b)
+            elif token == '-':
+                stack.append(a - b)
+            elif token == '*':
+                stack.append(a * b)
+            else:
+                stack.append(int(a / b))
+        else:
+            stack.append(int(token))
+    
+    return stack[0]
+
+# Next greater element (Monotonic stack)
+def next_greater_elements(nums):
+    n = len(nums)
+    result = [-1] * n
+    stack = []
+    
+    for i in range(n):
+        while stack and nums[i] > nums[stack[-1]]:
+            idx = stack.pop()
+            result[idx] = nums[i]
+        stack.append(i)
+    
+    return result
+
+# Min stack (with O(1) min operation)
+class MinStack:
+    def __init__(self):
+        self.stack = []
+        self.min_stack = []
+    
+    def push(self, val):
+        self.stack.append(val)
+        
+        if not self.min_stack or val <= self.min_stack[-1]:
+            self.min_stack.append(val)
+    
+    def pop(self):
+        if self.stack:
+            val = self.stack.pop()
+            if val == self.min_stack[-1]:
+                self.min_stack.pop()
+            return val
+    
+    def top(self):
+        return self.stack[-1] if self.stack else None
+    
+    def get_min(self):
+        return self.min_stack[-1] if self.min_stack else None
+```
+
+---
+
+## 18. Queues
+
+### Overview
+FIFO (First In First Out) data structure.
+
+### Time Complexity
+- **Enqueue**: O(1)
+- **Dequeue**: O(1)
+- **Front/Peek**: O(1)
+- **Search**: O(n)
+
+### When to Use
+- BFS traversal
+- Level order traversal
+- Task scheduling
+- Buffer/cache implementation
+- Printer queue
+
+### Implementation
+```python
+# Using deque (recommended)
+from collections import deque
+
+queue = deque()
+queue.append(1)  # Enqueue
+front = queue.popleft()  # Dequeue
+front = queue[0] if queue else None  # Peek
+
+# Using list (NOT recommended - O(n) for dequeue)
+queue = []
+queue.append(1)  # Enqueue
+front = queue.pop(0)  # Dequeue - O(n)!
+
+# Custom implementation using list
+class Queue:
+    def __init__(self):
+        self.items = []
+    
+    def enqueue(self, item):
+        self.items.append(item)
+    
+    def dequeue(self):
+        if not self.is_empty():
+            return self.items.pop(0)
+        raise IndexError("dequeue from empty queue")
+    
+    def front(self):
+        if not self.is_empty():
+            return self.items[0]
+        raise IndexError("front from empty queue")
+    
+    def is_empty(self):
+        return len(self.items) == 0
+    
+    def size(self):
+        return len(self.items)
+
+# Circular Queue
+class CircularQueue:
+    def __init__(self, k):
+        self.queue = [None] * k
+        self.max_size = k
+        self.head = 0
+        self.tail = -1
+        self.size = 0
+    
+    def enqueue(self, value):
+        if self.is_full():
+            return False
+        
+        self.tail = (self.tail + 1) % self.max_size
+        self.queue[self.tail] = value
+        self.size += 1
+        return True
+    
+    def dequeue(self):
+        if self.is_empty():
+            return False
+        
+        self.head = (self.head + 1) % self.max_size
+        self.size -= 1
+        return True
+    
+    def front(self):
+        return -1 if self.is_empty() else self.queue[self.head]
+    
+    def rear(self):
+        return -1 if self.is_empty() else self.queue[self.tail]
+    
+    def is_empty(self):
+        return self.size == 0
+    
+    def is_full(self):
+        return self.size == self.max_size
+```
+
+### Common Patterns
+```python
+# BFS template
+def bfs_template(start):
+    from collections import deque
+    
+    queue = deque([start])
+    visited = set([start])
+    
+    while queue:
+        node = queue.popleft()
+        
+        # Process node
+        print(node)
+        
+        # Add neighbors
+        for neighbor in get_neighbors(node):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+# Level order traversal
+def level_order_traversal(root):
+    if not root:
+        return []
+    
+    from collections import deque
+    
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)
+        level = []
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level.append(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level)
+    
+    return result
+
+# Implement stack using queues
+class StackUsingQueues:
+    def __init__(self):
+        from collections import deque
+        self.q1 = deque()
+        self.q2 = deque()
+    
+    def push(self, x):
+        self.q2.append(x)
+        while self.q1:
+            self.q2.append(self.q1.popleft())
+        self.q1, self.q2 = self.q2, self.q1
+    
+    def pop(self):
+        return self.q1.popleft()
+    
+    def top(self):
+        return self.q1[0]
+    
+    def empty(self):
+        return len(self.q1) == 0
 ```
 
 ---
